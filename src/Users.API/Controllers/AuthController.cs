@@ -2,6 +2,7 @@
 using CurrencyTracker.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CurrencyTracker.Users.API.Controllers;
 [ApiController]
@@ -49,7 +50,6 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        // В реальном приложении можно добавить токен в blacklist
         return Ok(new { message = "Logged out successfully" });
     }
 
@@ -57,8 +57,25 @@ public class AuthController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        var userId = _tokenService.GetUserIdFromToken(Request.Headers["Authorization"]!);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized();
+
+        var userId = int.Parse(userIdClaim.Value);
         var user = await _userService.GetUserByIdAsync(userId);
         return Ok(user);
+    }
+
+    [Authorize]
+    [HttpPost("favorite/{currencyId}")]
+    public async Task<IActionResult> AddFavorite(int currencyId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized();
+
+        var userId = int.Parse(userIdClaim.Value);
+        await _userService.AddFavoriteCurrencyAsync(userId, currencyId);
+        return Ok();
     }
 }

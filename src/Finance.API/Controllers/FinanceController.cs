@@ -1,6 +1,7 @@
 ﻿using CurrencyTracker.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CurrencyTracker.Finance.API.Controllers;
 [ApiController]
@@ -20,7 +21,11 @@ public class FinanceController : ControllerBase
     [HttpGet("user-currencies")]
     public async Task<IActionResult> GetUserCurrencies()
     {
-        var userId = _tokenService.GetUserIdFromToken(Request.Headers["Authorization"]!);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized();
+
+        var userId = int.Parse(userIdClaim.Value);
         var userCurrencies = await _currencyService.GetUserCurrenciesAsync(userId);
         return Ok(userCurrencies);
     }

@@ -11,9 +11,7 @@
       ],
       "UpstreamPathTemplate": "/api/users/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
+      "SwaggerKey": "users"
     },
     {
       "DownstreamPathTemplate": "/api/{everything}",
@@ -26,9 +24,7 @@
       ],
       "UpstreamPathTemplate": "/api/finance/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer"
-      }
+      "SwaggerKey": "finance"
     }
   ],
   "GlobalConfiguration": {
