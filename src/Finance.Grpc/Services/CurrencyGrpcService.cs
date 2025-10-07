@@ -19,7 +19,6 @@ public class CurrencyGrpcService : CurrencyService.CurrencyServiceBase
     public override async Task<GetUserCurrenciesResponse> GetUserCurrencies(
         GetUserCurrenciesRequest request, ServerCallContext context)
     {
-        // 🔐 Валидация JWT уже пройдена через [Authorize]
 
         var userId = request.UserId;
 

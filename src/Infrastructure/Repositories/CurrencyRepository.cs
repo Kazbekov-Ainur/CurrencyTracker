@@ -27,11 +27,10 @@ public class CurrencyRepository : BaseRepository<Currency>, ICurrencyRepository
             }
             else
             {
-                // Создаем новую валюту, если не найдена
                 var newCurrency = new Currency
                 {
                     Code = code,
-                    Name = code, // В реальном приложении нужно нормальное название
+                    Name = code,
                     Rate = rate,
                     LastUpdated = DateTime.UtcNow
                 };
