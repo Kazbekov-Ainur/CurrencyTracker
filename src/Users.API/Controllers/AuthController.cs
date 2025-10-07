@@ -3,6 +3,7 @@ using CurrencyTracker.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace CurrencyTracker.Users.API.Controllers;
 [ApiController]
@@ -18,7 +19,13 @@ public class AuthController : ControllerBase
         _tokenService = tokenService;
     }
 
+    /// <summary>
+    /// Регистрация нового пользователя.
+    /// </summary>
+    /// <param name="registerDto">Данные для регистрации пользователя.</param>
+    /// <returns>Информация о созданном пользователе.</returns>
     [HttpPost("register")]
+    [SwaggerOperation(Summary = "Регистрация нового пользователя")]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto registerDto)
     {
         try
@@ -32,7 +39,13 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Аутентификация пользователя и получение JWT-токена.
+    /// </summary>
+    /// <param name="loginDto">Данные для входа (email и пароль).</param>
+    /// <returns>JWT-токен для авторизации.</returns>
     [HttpPost("login")]
+    [SwaggerOperation(Summary = "Аутентификация пользователя и получение JWT-токена")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
     {
         try
@@ -46,15 +59,25 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Выход пользователя (псевдо-логаут, т.к. токен хранится на клиенте).
+    /// </summary>
+    /// <returns>Сообщение об успешном выходе.</returns>
     [Authorize]
     [HttpPost("logout")]
+    [SwaggerOperation(Summary = "Выход пользователя из системы")]
     public IActionResult Logout()
     {
         return Ok(new { message = "Logged out successfully" });
     }
 
+    /// <summary>
+    /// Получение профиля текущего авторизованного пользователя.
+    /// </summary>
+    /// <returns>Информация о пользователе.</returns>
     [Authorize]
     [HttpGet("profile")]
+    [SwaggerOperation(Summary = "Получение профиля текущего пользователя")]
     public async Task<IActionResult> GetProfile()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -66,8 +89,14 @@ public class AuthController : ControllerBase
         return Ok(user);
     }
 
+    /// <summary>
+    /// Добавление валюты в список избранных текущего пользователя.
+    /// </summary>
+    /// <param name="currencyId">Идентификатор валюты для добавления.</param>
+    /// <returns>Результат операции (Ok или Unauthorized).</returns>
     [Authorize]
     [HttpPost("favorite/{currencyId}")]
+    [SwaggerOperation(Summary = "Добавление валюты в избранное пользователя")]
     public async Task<IActionResult> AddFavorite(int currencyId)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
