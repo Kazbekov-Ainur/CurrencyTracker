@@ -1,17 +1,23 @@
 ﻿using CurrencyTracker.Application.DTOs;
 using CurrencyTracker.Application.Interfaces;
 using CurrencyTracker.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text;
+using System.Xml;
 
 namespace CurrencyTracker.Application.Services;
 public class CurrencyService : ICurrencyService
 {
     private readonly ICurrencyRepository _currencyRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<CurrencyService> _logger;
 
-    public CurrencyService(ICurrencyRepository currencyRepository, IUserRepository userRepository)
+    public CurrencyService(ICurrencyRepository currencyRepository, IUserRepository userRepository, ILogger<CurrencyService> logger)
     {
         _currencyRepository = currencyRepository;
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     public async Task UpdateCurrencyRatesAsync()
@@ -68,11 +74,43 @@ public class CurrencyService : ICurrencyService
 
     private async Task<Dictionary<string, decimal>> FetchRatesFromCbr()
     {
-        // Временная реализация - полная реализация будет в фоновом сервисе
-        return new Dictionary<string, decimal>
+        var rates = new Dictionary<string, decimal>();
+        try
         {
-            ["USD"] = 90.5m,
-            ["EUR"] = 98.2m
-        };
+            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync("http://www.cbr.ru/scripts/XML_daily.asp");
+            response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(stream, Encoding.GetEncoding("windows-1251"));
+
+            var xmlContent = await reader.ReadToEndAsync();
+
+            var xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlContent);
+
+            var valuteNodes = xmlDoc.SelectNodes("//Valute");
+            if (valuteNodes != null)
+            {
+                foreach (XmlNode node in valuteNodes)
+                {
+                    var code = node.SelectSingleNode("CharCode")?.InnerText;
+                    var value = node.SelectSingleNode("Value")?.InnerText;
+                    var nominal = node.SelectSingleNode("Nominal")?.InnerText;
+                    if (code != null && value != null && nominal != null)
+                    {
+                        var rateValue = decimal.Parse(value.Replace(",", "."), CultureInfo.InvariantCulture) / int.Parse(nominal);
+                        rates[code] = rateValue;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error fetching rates from CBR");
+        }
+        return rates;
     }
 }

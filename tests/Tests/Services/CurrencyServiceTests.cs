@@ -2,8 +2,8 @@
 using CurrencyTracker.Application.Services;
 using CurrencyTracker.Domain.Entities;
 using CurrencyTracker.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace CurrencyTracker.Tests.Services;
 public class CurrencyServiceTests
@@ -11,12 +11,14 @@ public class CurrencyServiceTests
     private readonly Mock<ICurrencyRepository> _currencyRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly CurrencyService _currencyService;
+    private readonly Mock<ILogger<CurrencyService>> _loggerMock;
 
     public CurrencyServiceTests()
     {
         _currencyRepositoryMock = new Mock<ICurrencyRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
-        _currencyService = new CurrencyService(_currencyRepositoryMock.Object, _userRepositoryMock.Object);
+        _loggerMock = new Mock<ILogger<CurrencyService>>();
+        _currencyService = new CurrencyService(_currencyRepositoryMock.Object, _userRepositoryMock.Object, _loggerMock.Object);
     }
 
     [Fact]
